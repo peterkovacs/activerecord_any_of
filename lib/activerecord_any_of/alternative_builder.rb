@@ -87,16 +87,16 @@ module ActiverecordAnyOf
 
         def with_statement_cache
           if queries && queries_bind_values.any?
-            relation = where([unprepare_query(queries.reduce(:or).to_sql), *queries_bind_values.map { |v| v[1] }])
+            relation = where([unprepare_query(queries.map{ |i| grouping(i) }.reduce(:or).to_sql), *queries_bind_values.map { |v| v[1] }])
           else
-            relation = where(queries.reduce(:or).to_sql)
+            relation = where(queries.map{ |i| grouping(i) }.reduce(:or).to_sql)
           end
 
           add_joins_to relation
         end
 
         def without_statement_cache
-          relation = where(queries.reduce(:or))
+          relation = where(queries.map{ |i| grouping(i) }.reduce(:or))
           add_related_values_to relation
         end
     end
@@ -107,15 +107,15 @@ module ActiverecordAnyOf
         def with_statement_cache
           if ActiveRecord::VERSION::MAJOR >= 4
             if queries && queries_bind_values.any?
-              relation = where.not([unprepare_query(queries.reduce(:or).to_sql), *queries_bind_values.map { |v| v[1] }])
+              relation = where.not([unprepare_query(queries.map{ |i| grouping(i) }.reduce(:or).to_sql), *queries_bind_values.map { |v| v[1] }])
             else
-              relation = where.not(queries.reduce(:or).to_sql)
+              relation = where.not(queries.map{ |i| grouping(i) }.reduce(:or).to_sql)
             end
           else
             if queries && queries_bind_values.any?
-              relation = where([unprepare_query(Arel::Nodes::Not.new(queries.reduce(:or)).to_sql), *queries_bind_values.map { |v| v[1] }])
+              relation = where([unprepare_query(Arel::Nodes::Not.new(queries.map{ |i| grouping(i) }.reduce(:or)).to_sql), *queries_bind_values.map { |v| v[1] }])
             else
-              relation = where(Arel::Nodes::Not.new(queries.reduce(:or)).to_sql)
+              relation = where(Arel::Nodes::Not.new(queries.map{ |i| grouping(i) }.reduce(:or)).to_sql)
             end
           end
 
@@ -124,9 +124,9 @@ module ActiverecordAnyOf
 
         def without_statement_cache
           if ActiveRecord::VERSION::MAJOR >= 4
-            relation = where.not(queries.reduce(:or))
+            relation = where.not(queries.map{ |i| grouping(i) }.reduce(:or))
           else
-            relation = where(Arel::Nodes::Not.new(queries.reduce(:or)))
+            relation = where(Arel::Nodes::Not.new(queries.map{ |i| grouping(i) }.reduce(:or)))
           end
 
           add_related_values_to relation
